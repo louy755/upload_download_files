@@ -1,0 +1,85 @@
+1-(DEFINE THAT WE WILL USE DEVISE) copy  and paste in the Gem file
+  gem 'devise'
+2- (INSTALL THE GEM )
+  bundle install
+3- (INSTALL DEVISE)  
+  rails generate devise:install
+4- (GENERATE THE DEVISE MODEL(note that you should change the word 'MODEL' with your model name (usually user))
+  rails generate devise MODEL
+5- (GENERATE THE VIEWS FOR DEVISE) 
+  rails generate devise:views
+6- (GENERATE THE CONTROLLERS FOR DEVISE) note you should change the word 'scope' with your controller name (Usually users)
+  rails generate devise:controllers scope
+7- (TO FORCE THE APPLICATION AUTHENTICATE THE USER BEFORE ACTION) copy and paste in app/controllers/application_controller.rb
+  before_action :authenticate_user!
+8-(change the route for devise in config/routes.rb )  
+  from   ( devise_for :users )
+  to     (devise_for :users, controllers: {sessions: 'users/sessions' } )
+9-( OPTIONAL TO ACTIVE CONFIRMATION )open app/models/user.rb and add the confirmable option to devise by adding to the other options
+ :confirmable
+10-(ACTIVE THE COLMUNS FOR THE CONFIRMATION OPTION IN THE USER TABLE IN THE MIGRATION )open the migration file in db/migrate/???????????devise_create_users
+uncomment the lines under the confirmable option by deleting the (#) sign
+11-(DEFINE THE MAILER URL) copy and paste in config/environments/development.rb
+  config.action_mailer.default_url_options = { host: 'your application URL' }
+12-( DEFINE THE USER NAME ,PASSWORD ,PORT AND THE PROTOCOL INORDER TO USE FOR SENDING EMAILS )copy and paste in config/environments/development.rb
+(note that this setting for Gmail only and it's not the same for others)
+       config.action_mailer.smtp_settings = {
+       :address              => "smtp.gmail.com",
+       :port                 =>  587,
+       :user_name            => 'PUT YOUR E-MAIL USER NAME HERE',
+       :password             =>  'PUT YOUR E-MAIL PASSWORD HERE',
+       :authentication       => 'plain',
+       :enable_starttls_auto => true  }
+13- AFTER CREATING GMAIL ACCOUNT SHOULD STOP THE CAPTCHA FROM THE LINK BELOW 
+  https://accounts.google.com/DisplayUnlockCaptcha
+
+(NOTE THAT WHEN YOU WILL PUSH THE CODE TO GITHUB EVERYONE WILL SEE THAT EMAIL AND PASSWORD)
+
+14-(DEFINE THE ROOT (HOME PAGE) FOR THE APPLICATION) in config/routes.rb note that you have to change the word'home' with your home page controller name And the word 'index' with the page you want to select as home
+   root to: 'home#index’
+15-(MIGRATE THE MIGRATIONS FILES )
+   rake db:migrate
+16-(SHOW LINKS FOR SIGN IN  SIGN OUT  & EDIT USER PROFILE ) add these lines in app/views/layout/application.html.erb 
+  
+<% if user_signed_in? %>
+    Logged in as <strong><%= current_user.email %></strong>.
+   <%= link_to 'Edit profile', edit_user_registration_path %> |
+   <%= link_to "Logout", destroy_user_session_path, method: :delete  %>
+ <% else %>
+   <%= link_to "Sign up", new_user_registration_path  %> |
+   <%= link_to "Login", new_user_session_path %>
+ <% end %>
+
+Reference :=> https://github.com/plataformatec/devise
+
+
+
+IF you forgat to add the migration and active the confirmation in the model  we can do 
+1- go to models/user.rb and active the :confirmation 
+2- add the migration which will add the rest columns for the devise gem 
+    rails g migration add_confirmable_to_devise
+ and in the generated migration we should add  
+  
+  # Note: You can't use change, as User.update_all will fail in the down migration
+ 
+ def up
+    add_column :users, :confirmation_token, :string
+    add_column :users, :confirmed_at, :datetime
+    add_column :users, :confirmation_sent_at, :datetime
+    # add_column :users, :unconfirmed_email, :string # Only if using reconfirmable
+    add_index :users, :confirmation_token, unique: true
+    # User.reset_column_information # Need for some types of updates, but not for update_all.
+    # To avoid a short time window between running the migration and updating all existing
+    # users as confirmed, do the following
+    execute("UPDATE users SET confirmed_at = NOW()")
+    # All existing user accounts should be able to log in after this.
+    # Remind: Rails using SQLite as default. And SQLite has no such function :NOW.
+    # Use :date('now') instead of :NOW when using SQLite.
+    # => execute("UPDATE users SET confirmed_at = date('now')")
+    # Or => User.all.update_all confirmed_at: Time.now
+  end
+  def down
+    remove_columns :users, :confirmation_token, :confirmed_at, :confirmation_sent_at
+    # remove_columns :users, :unconfirmed_email # Only if using reconfirmable
+  end
+Reference :=>  https://github.com/plataformatec/devise/wiki/How-To:-Add-:confirmable-to-Users

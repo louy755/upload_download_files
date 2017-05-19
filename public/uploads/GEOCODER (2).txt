@@ -1,0 +1,111 @@
+refrences for this practice 
+http://railscasts.com/episodes/273-geocoder?autoplay=true //video and documentation
+ https://rubygems.org/gems/rails/versions/5.0.0  /// Got to the railsgem.org
+http://stackoverflow.com/questions/16034504/geocoder-rails-3-2-sqlexception-no-such-column-distance ///dication about the distance column 
+START NOW ==>
+rails g scaffold hotel address:string review:text latitude:float longitude:float
+rake db:migrate 
+---------------------->
+ set the home root   >> run the server show hotels/index.html.erb
+-----------------------\
+-----------------------/
+Got to the rails gem org >>> https://rubygems.org/gems/rails/versions/5.0.0
+Gemfile >> add the gem to the file
+--------------->
+ gem 'geocoder'
+--------------->
+bundle install
+--------------->
+Go to models/hotel.rb >> add this code so it can take address and returen longitude and latitude by google api 
+--
+geocoded_by :address
+after_validation :geocode 
+**************restart the server****************
+-------------------------------now you can create one location 
+if we need more locations we need make our model be look loke this
+---- 
+models/hotel.rb >>>>>>>> add this code your model should look like this :
+--
+geocoded_by :address
+after_validation :geocode, :if => :address_changed?
+---------------------------------------------------------done for this part and I should create 5 -6 hotels now 
+Freehand Chicago
+Kinzie Hotel chiqcago
+Residence Inn by Marriott Chicago Downtown/River North
+Kimpton Hotel Palomar Chicago
+Trump International Hotel & Tower Chicago
+*********************************************************************now add the nearby hotels @the show action 
+locations/show.html.erb >>> add this to start see the nearby hotels by 10 miles 
+--
+<h3>Nearby locations</h3>
+<ul>
+
+<% for hotel in @hotel.nearbys(10) %>
+
+ <li><%= link_to hotel.address, hotel %> (<%= hotel.distance.round(2) %> miles)</li>
+
+<% end %>
+
+</ul>
+----------------------------------------------done for show nearby hotels
+-------------------------------------------------------------------------------add the search bar 
+locations/index.html.erb
+--
+<%= form_tag hotels_path, :method => :get do %>
+  <p>
+    <%= text_field_tag :search, params[:search] %>
+    <%= submit_tag "Search Near", :name => nil %>
+  </p>
+<% end %>
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& add the params inthe index.html.erb
+locations_controller.rb
+--
+def index
+  if params[:search].present?
+    @hotels = Hotel.near(params[:search], 50, :order => :distance)
+  else
+    @hotels = Hotel.all
+  end
+end
+--------------------------------------done and it's not working but now we I need to add code to start showing location on map snap
+locations/show.html.erb  >>> add this on top of the nearby hotels 
+<%= image_tag "http://maps.google.com/maps/api/staticmap?size=450x300&sensor=false&zoom=16&markers=#{@location.latitude}%2C#{@location.longitude}" %>
+ DONE 
+*****to revers the coordinate to address **
+VIEW/SHOW>HTML.ERB
+--ADD **
+       geocoded_by :address
+ 
+    ** reverse_geocoded_by :latitude, :longitude
+ 
+    ** after_validation :geocode, :reverse_geocode       #:if => :address_changed?
+ 
+      Latitude: 40.6892494  Longitude: -74.04450039999999
+ 
+---------------------------------------------------------------------------now show the distance from the ORD to the hotel
+----------------------------------------------------------------------------------------------------------------------------
+VIEW/HOTELS/show.rb
+--
+def distance_to_gilgabytes
+    if distance  = distance_to("25 w hubbard st chicago il 60654")
+
+        return distance.ceil
+ 
+    end
+    
+end
+------
+VIEW/HOTELS/show.html.erb
+--
+APP/VIEW/HOTELS/show.html.erb
+<h3>Distance to Gilga Bytes :</h3>
+
+<%= number_to_human @hotel.distance_to_gligabytes %><span>(Miles)</span>
+
+<br>
+<br>
+------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------done 
+
+ end 
+

@@ -1,0 +1,29 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Resumes</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Cover letter</th>
+      <th>Title</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @resumes.each do |resume| %>
+      <tr>
+        <td><%= resume.cover_letter %></td>
+        <td><%= resume.title %></td>
+        <td><%= link_to 'Download', resume %></td>
+        <td><%= link_to 'Edit', edit_resume_path(resume) %></td>
+        <td><%= link_to 'Destroy', resume, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>
+
+<%= link_to 'New Resume', new_resume_path %>
